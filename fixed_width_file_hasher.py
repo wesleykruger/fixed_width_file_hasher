@@ -22,6 +22,8 @@ class ScrambleObject:
 input_file = Path('')
 output_file = Path('')
 
+line_limit = 2
+
 # Enter your lines to mask here, each as a new ScrambleObject.
 # Each should follow this format, and they should be separated by commas within the array:
 
@@ -73,30 +75,33 @@ def random_string(text_or_int, data_type):
 
 def scramble(arr):
     lines = []
-    # Want to hold file data in memory to manipulate and then write once at the end rather than multiple writes
-    with open(input_file, encoding='utf8') as f:
-        s = f.readlines()
-        for line in s:
-            lines.append(line)
-    for index, entry in enumerate(arr):
+    # Initial quick sweep to make sure that all entries are valid
+    for index, validate_entry in enumerate(arr):
         # Zero-based index is confusing for error message
         error_index = index + 1
-        if validate_objects(entry) == 'TypeError':
+        if validate_objects(validate_entry) == 'TypeError':
             raise TypeError('You are using the incorrect data type for one of your properties '
-                             'in object number {}'.format(error_index))
-        elif validate_objects(entry) == 'DataType':
+                            'in object number {}'.format(error_index))
+        elif validate_objects(validate_entry) == 'DataType':
             raise Exception("The data type you selected in scramble object number {} is incorrect. "
                             "Please select either 'str' or 'int'.".format(error_index))
-        for line_index, line in enumerate(lines):
-            if line[entry.record_type_start_pos: entry.record_type_start_pos + len(entry.record_value)] == entry.record_value:
-                text_to_replace = line[entry.scramble_start_pos:entry.scramble_start_pos + entry.scramble_length]
-                scramble_values = random_string(text_to_replace, entry.data_type)
-                line = line[:entry.scramble_start_pos] + scramble_values + line[entry.scramble_start_pos + len(scramble_values):]
-            print(line)
-            lines[line_index] = line
-    with open(output_file, 'w', encoding='utf8') as w:
+    # Read through each line one at a time, write when we hit our limit to ensure we don't go over available memory
+    with open(input_file, 'r', encoding='utf8') as fileobject:
+        for line in fileobject:
+            for entry in arr:
+                if line[entry.record_type_start_pos: entry.record_type_start_pos + len(entry.record_value)] == entry.record_value:
+                    text_to_replace = line[entry.scramble_start_pos:entry.scramble_start_pos + entry.scramble_length]
+                    scramble_values = random_string(text_to_replace, entry.data_type)
+                    line = line[:entry.scramble_start_pos] + scramble_values + line[entry.scramble_start_pos + len(scramble_values):]
+                print(line)
+            lines.append(line)
+            if len(lines) >= line_limit:
+                with open(output_file, 'a+', encoding='utf8') as a:
+                    a.write(''.join(lines))
+                    lines = []
+    with open(output_file, 'a+', encoding='utf8') as w:
         w.write(''.join(lines))
-    w.close()
+        w.close()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 from pathlib import Path
 import random
 import string
+import os.path
 
 
 # This must come before the user definition section
@@ -17,12 +18,12 @@ class ScrambleObject:
 # *****************************************************************
 # USER INPUT SECTION
 
-# Define the file you will be reading from and the file you will be writing to.
-# Make sure that the output directory can be written to.
+# Define the FILES you will be reading/writing. Ensure these are not directories.
+# Ensure that the output file directory can be written to. If a file already exists with this name it WILL be overwritten.
 input_file = Path('')
 output_file = Path('')
 
-line_limit = 2
+line_limit = 7
 
 # Enter your lines to mask here, each as a new ScrambleObject.
 # Each should follow this format, and they should be separated by commas within the array:
@@ -75,6 +76,9 @@ def random_string(text_or_int, data_type):
 
 def scramble(arr):
     lines = []
+    if not os.path.isfile(input_file):
+        raise FileNotFoundError('Input file does not exist, please enter a valid path.')
+
     # Initial quick sweep to make sure that all entries are valid
     for index, validate_entry in enumerate(arr):
         # Zero-based index is confusing for error message
@@ -85,6 +89,10 @@ def scramble(arr):
         elif validate_objects(validate_entry) == 'DataType':
             raise Exception("The data type you selected in scramble object number {} is incorrect. "
                             "Please select either 'str' or 'int'.".format(error_index))
+
+    # Overwrite output file if it already exists so we're not appending each time
+    if os.path.isfile(output_file):
+        open(output_file, 'w',).close()
     # Read through each line one at a time, write when we hit our limit to ensure we don't go over available memory
     with open(input_file, 'r', encoding='utf8') as fileobject:
         for line in fileobject:
@@ -93,15 +101,17 @@ def scramble(arr):
                     text_to_replace = line[entry.scramble_start_pos:entry.scramble_start_pos + entry.scramble_length]
                     scramble_values = random_string(text_to_replace, entry.data_type)
                     line = line[:entry.scramble_start_pos] + scramble_values + line[entry.scramble_start_pos + len(scramble_values):]
-                print(line)
+            print(line)
             lines.append(line)
             if len(lines) >= line_limit:
                 with open(output_file, 'a+', encoding='utf8') as a:
                     a.write(''.join(lines))
                     lines = []
-    with open(output_file, 'a+', encoding='utf8') as w:
-        w.write(''.join(lines))
-        w.close()
+    # Final append write for any lines left over
+    if len(lines) > 0:
+        with open(output_file, 'a+', encoding='utf8') as w:
+            w.write(''.join(lines))
+            w.close()
 
 
 if __name__ == '__main__':

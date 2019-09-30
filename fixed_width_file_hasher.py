@@ -101,7 +101,6 @@ def scramble(arr):
                     text_to_replace = line[entry.scramble_start_pos:entry.scramble_start_pos + entry.scramble_length]
                     scramble_values = random_string(text_to_replace, entry.data_type)
                     line = line[:entry.scramble_start_pos] + scramble_values + line[entry.scramble_start_pos + len(scramble_values):]
-            print(line)
             lines.append(line)
             if len(lines) >= line_limit:
                 with open(output_file, 'a+', encoding='utf8') as a:

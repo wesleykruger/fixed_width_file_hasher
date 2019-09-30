@@ -20,8 +20,8 @@ class RedactObject:
 
 # Define the FILES you will be reading/writing. Ensure these are not directories.
 # Ensure that the output file directory can be written to. If a file already exists with this name it WILL be overwritten.
-input_file = Path('')
-output_file = Path('')
+input_file = Path('C:/Users/wesleykruger/Documents/BBVA/pii-shuffle/test3.txt')
+output_file = Path('C:/Users/wesleykruger/Documents/BBVA/pii-shuffle/test7.txt')
 
 line_limit = 7
 

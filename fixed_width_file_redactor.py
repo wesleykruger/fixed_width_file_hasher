@@ -22,8 +22,8 @@ class RedactObject:
 
 # Define the FILES you will be reading/writing. Ensure these are not directories.
 # Ensure that the output file directory can be written to. If a file already exists with this name it WILL be overwritten.
-input_file = Path('C:/Users/wesleykruger/Documents/BBVA/pii-shuffle/test3.txt')
-output_file = Path('C:/Users/wesleykruger/Documents/BBVA/pii-shuffle/test7.txt')
+input_file = Path('')
+output_file = Path('')
 
 # This is the number of lines that the program will store in memory before writing to a file
 # Recommend keeping it fairly high (thousands), this is mostly to strike a balance between a) too many writes to the drive b) excessive memory usage

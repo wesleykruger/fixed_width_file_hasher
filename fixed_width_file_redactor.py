@@ -22,12 +22,12 @@ class RedactObject:
 
 # Define the FILES you will be reading/writing. Ensure these are not directories.
 # Ensure that the output file directory can be written to. If a file already exists with this name it WILL be overwritten.
-input_file = Path('')
-output_file = Path('')
+input_file = Path(r''.replace(r'\&', '/'))
+output_file = Path(r''.replace(r'\&', '/'))
 
 # This is the number of lines that the program will store in memory before writing to a file
 # Recommend keeping it fairly high (thousands), this is mostly to strike a balance between a) too many writes to the drive b) excessive memory usage
-line_limit = 10
+line_limit = 1000
 
 # Enter your lines to mask here, each as a new RedactObject.
 # Each should follow this format, and they should be separated by commas within the array:
@@ -54,7 +54,7 @@ redact_array = [
     RedactObject(record_type_start_pos=0, record_value='C', redact_start_pos=9, redact_length=10, data_type='int'),
     RedactObject(record_type_start_pos=0, record_value='D', redact_start_pos=28, redact_length=1, data_type='int'),
     RedactObject(record_type_start_pos=0, record_value='E', redact_start_pos=62, redact_length=5, data_type='int'),
-    RedactObject(record_type_start_pos=0, record_value='H', redact_start_pos=59, redact_length=3, data_type='date'),
+    RedactObject(record_type_start_pos=0, record_value='H', redact_start_pos=59, redact_length=8, data_type='date'),
     RedactObject(record_type_start_pos=0, record_value='F', redact_start_pos=19, redact_length=2, data_type='state'),
     RedactObject(record_type_start_pos=0, record_value="LA\d\d", redact_start_pos=41, redact_length=4, data_type='str'),
 ]
@@ -73,11 +73,11 @@ def validate_objects(obj):
         return True
 
 
-def random_string(text_or_int, data_type):
+def random_string(text_or_int, non_blank_indexes, data_type):
     length = len(text_or_int)
     if data_type == 'int':
         numbers = '0123456789'
-        characters = ''.join(random.choice(numbers) for i in range(length))
+        characters = ''.join(random.choice(numbers) for i in range(length) if i not in non_blank_indexes)
     elif data_type == 'date':
         # Pick a random date between 18-60 years ago
         start_dt = (date.today() - timedelta(weeks=3120)).toordinal()
@@ -94,7 +94,13 @@ def random_string(text_or_int, data_type):
     else:
         letters = string.ascii_letters
         characters = ''.join(random.choice(letters) for i in range(length))
-    return characters
+    list_to_return = []
+    for i, value in enumerate(characters):
+        if i in non_blank_indexes:
+            list_to_return.append(value)
+        else:
+            list_to_return.append(" ")
+    return ''.join(list_to_return)
 
 
 def redact(arr):
@@ -123,7 +129,11 @@ def redact(arr):
                 if x is not None:
                     if x.span()[0] == entry.record_type_start_pos:
                         text_to_replace = line[entry.redact_start_pos:entry.redact_start_pos + entry.redact_length]
-                        redact_values = random_string(text_to_replace, entry.data_type)
+                        text_to_replace_value_check = []
+                        for i, value in enumerate(text_to_replace):
+                            if value != " ":
+                                text_to_replace_value_check.append(i)
+                        redact_values = random_string(text_to_replace, text_to_replace_value_check, entry.data_type)
                         line = line[:entry.redact_start_pos] + redact_values + line[entry.redact_start_pos + len(redact_values):]
             lines.append(line)
             if len(lines) >= line_limit:
